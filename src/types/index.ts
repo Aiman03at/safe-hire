@@ -1,1 +1,26 @@
-export {};
+export interface ScoredSignal {
+  category: string;
+  flag: boolean;
+  note: string;
+}
+
+export interface AnalysisResult {
+  score: number;
+  verdict: string;
+  company: string;
+  role: string;
+  signals: ScoredSignal[];
+  summary: string;
+}
+
+export interface JobResult {
+  title: string;
+  company: string;
+  url: string;
+  why: string;
+  score: number;
+}
+
+export interface AdvisorResult {
+  jobs: JobResult[];
+}
