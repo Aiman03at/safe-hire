@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AdvisorResult } from "../types/index";
+import type { AdvisorResult } from "../types/index";
 import { findJobs } from "../lib/claude";
 import JobCard from "./JobCard";
 

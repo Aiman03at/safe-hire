@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AnalysisResult } from "../types/index";
+import type { AnalysisResult } from "../types/index";
 import { analyzePosting } from "../lib/claude";
 import ScoreCard from "./ScoreCard";
 

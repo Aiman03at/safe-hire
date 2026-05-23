@@ -1,4 +1,4 @@
-import { JobResult } from "../types/index";
+import type { JobResult } from "../types/index";
 
 interface Props {
   job: JobResult;
