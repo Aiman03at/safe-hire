@@ -16,7 +16,6 @@ Requirements:
 - Must be a culture fit
 - Experience with all modern frameworks
 - Ability to work in a fast-paced environment
-- Strong communication skills
 
 Responsibilities:
 - Build stuff
@@ -27,22 +26,18 @@ Apply by sending your resume to jobs@company.com.
 We will reach out if interested.`;
 
 export default function AuditorMode() {
-  const [postingText, setPostingText] = useState("");
-  const [result, setResult] = useState<AuditResult | null>(null);
+  const [postingText, setPostingText]     = useState("");
+  const [result, setResult]               = useState<AuditResult | null>(null);
   const [rewrittenText, setRewrittenText] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [rewriting, setRewriting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading]             = useState(false);
+  const [rewriting, setRewriting]         = useState(false);
+  const [error, setError]                 = useState<string | null>(null);
 
   const handleAudit = async () => {
     if (!postingText.trim()) return;
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    setRewrittenText(null);
+    setLoading(true); setError(null); setResult(null); setRewrittenText(null);
     try {
-      const data = await auditPosting(postingText);
-      setResult(data);
+      setResult(await auditPosting(postingText));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -52,11 +47,9 @@ export default function AuditorMode() {
 
   const handleRewrite = async () => {
     if (!result) return;
-    setRewriting(true);
-    setError(null);
+    setRewriting(true); setError(null);
     try {
-      const rewritten = await rewritePosting(postingText, result);
-      setRewrittenText(rewritten);
+      setRewrittenText(await rewritePosting(postingText, result));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Rewrite failed.");
     } finally {
@@ -64,82 +57,62 @@ export default function AuditorMode() {
     }
   };
 
+  const handleClear = () => {
+    setPostingText(""); setResult(null); setRewrittenText(null); setError(null);
+  };
+
   return (
-    <div className="space-y-5">
-
-      {/* B2B badge */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs px-2 py-1 rounded-full bg-violet-950
-          text-violet-400 border border-violet-900 font-medium">
-          For Recruiters
-        </span>
-        <span className="text-xs text-slate-500">
-          Score your job posting before it goes live
-        </span>
-      </div>
-
-      {/* Input */}
-      <div>
-        <p className="text-xs text-slate-500 uppercase tracking-widest mb-2">
-          Your Job Posting
-        </p>
+    <div className="flex flex-col gap-4">
+      {/* Input card */}
+      <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-stone-100">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200 uppercase tracking-wide">
+              Recruiter tool
+            </span>
+            <span className="text-xs text-stone-400 hidden sm:inline">Score before you publish</span>
+          </div>
+          <button
+            onClick={() => { setPostingText(SAMPLE_POSTING); setResult(null); setRewrittenText(null); setError(null); }}
+            className="text-xs font-semibold text-amber-700 hover:text-amber-800 transition-colors flex items-center gap-1"
+          >
+            <i className="ti ti-bolt text-sm" />
+            Try sample
+          </button>
+        </div>
         <textarea
           value={postingText}
           onChange={(e) => setPostingText(e.target.value)}
-          placeholder="Paste your job posting here before publishing..."
-          className="w-full h-40 resize-none text-sm p-4 rounded-lg
-            bg-slate-900 border border-slate-800 text-slate-200
-            placeholder-slate-600 focus:outline-none focus:border-slate-600
-            font-sans leading-relaxed"
+          placeholder="Paste your job posting before publishing…"
+          className="w-full h-44 sm:h-52 px-4 py-3 text-sm text-stone-800 placeholder-stone-300 bg-white resize-none focus:outline-none leading-relaxed"
         />
       </div>
 
-      {/* Buttons */}
-      <div className="flex gap-3 items-center">
+      {/* Actions */}
+      <div className="flex gap-3 flex-wrap">
         <button
           onClick={handleAudit}
           disabled={loading || !postingText.trim()}
-          className="px-5 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500
-            disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm
-            font-semibold transition-colors flex items-center gap-2"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-white text-sm font-semibold shadow-sm shadow-amber-700/25 hover:shadow-md hover:shadow-amber-700/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {loading ? (
             <>
-              <span className="w-3 h-3 border-2 border-white border-t-transparent
-                rounded-full animate-spin" />
-              Auditing...
+              <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Auditing…
             </>
           ) : (
-            "Audit posting"
+            <>
+              <i className="ti ti-clipboard-check text-base" />
+              Audit posting
+            </>
           )}
-        </button>
-
-        <button
-          onClick={() => {
-            setPostingText(SAMPLE_POSTING);
-            setResult(null);
-            setRewrittenText(null);
-            setError(null);
-          }}
-          className="px-4 py-2.5 rounded-lg border border-slate-800
-            text-slate-400 hover:text-slate-300 text-sm transition-colors
-            flex items-center gap-2"
-        >
-          ⚡ Try a bad posting
         </button>
 
         {(postingText || result) && (
           <button
-            onClick={() => {
-              setPostingText("");
-              setResult(null);
-              setRewrittenText(null);
-              setError(null);
-            }}
+            onClick={handleClear}
             disabled={loading}
-            className="px-4 py-2.5 rounded-lg border border-slate-800
-              text-slate-500 hover:text-slate-400 text-sm transition-colors
-              disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-4 py-2.5 rounded-xl border border-stone-200 text-stone-500 text-sm font-medium hover:bg-stone-50 hover:text-stone-700 transition-colors disabled:opacity-40"
           >
             Clear
           </button>
@@ -148,51 +121,35 @@ export default function AuditorMode() {
 
       {/* Error */}
       {error && (
-        <div className="p-3 rounded-lg bg-red-950 border border-red-900">
-          <p className="text-red-400 text-sm">{error}</p>
-        </div>
-      )}
-
-      {/* Divider */}
-      {result && (
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-800" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="px-3 bg-slate-950 text-xs text-slate-600 uppercase tracking-widest">
-              Audit Result
-            </span>
-          </div>
+        <div className="flex items-start gap-2.5 p-3.5 rounded-xl border border-red-200 bg-red-50 anim-fade-in">
+          <i className="ti ti-alert-circle text-red-500 text-base mt-0.5 shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
       {/* Audit result */}
       {result && (
-        <AuditCard
-          result={result}
-          onRewrite={handleRewrite}
-          rewriting={rewriting}
-        />
+        <div className="anim-fade-up">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1 h-px bg-stone-200" />
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-stone-400 px-1">Audit result</span>
+            <div className="flex-1 h-px bg-stone-200" />
+          </div>
+          <AuditCard result={result} onRewrite={handleRewrite} rewriting={rewriting} />
+        </div>
       )}
 
       {/* Rewrite panel */}
       {rewrittenText && (
-        <>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-800" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="px-3 bg-slate-950 text-xs text-slate-600 uppercase tracking-widest">
-                Rewritten Posting
-              </span>
-            </div>
+        <div className="anim-fade-up">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1 h-px bg-stone-200" />
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-stone-400 px-1">Rewritten posting</span>
+            <div className="flex-1 h-px bg-stone-200" />
           </div>
           <RewritePanel rewrittenText={rewrittenText} />
-        </>
+        </div>
       )}
-
     </div>
   );
 }

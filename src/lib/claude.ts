@@ -1,6 +1,6 @@
 import type { AnalysisResult, AdvisorResult, AuditResult } from "../types/index";
 
-const API_URL = "/api/anthropic/v1/messages";
+const API_URL = "/api/proxy";
 
 const HEADERS = {
   "Content-Type": "application/json",

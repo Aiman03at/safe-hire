@@ -9,10 +9,10 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     server: {
       proxy: {
-        '/api/anthropic': {
+        '/api/proxy': {
           target: 'https://api.anthropic.com',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/anthropic/, ''),
+          rewrite: () => '/v1/messages',
           headers: {
             'anthropic-version': '2023-06-01',
             'x-api-key': env.VITE_ANTHROPIC_API_KEY || '',
