@@ -19,6 +19,8 @@ export interface JobResult {
   url: string;
   why: string;
   score: number;
+  match_skills: string[];
+  gap_skills: string[];
 }
 
 export interface AdvisorResult {

@@ -27,6 +27,32 @@ export default function JobCard({ job }: Props) {
 
       <p className="text-sm text-gray-600 leading-relaxed">{job.why}</p>
 
+      {job.match_skills?.length ? (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {job.match_skills.map((skill) => (
+            <span
+              key={skill}
+              className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200"
+            >
+              ✓ {skill}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      {job.gap_skills?.length ? (
+        <div className="flex flex-wrap gap-1 mt-1">
+          {job.gap_skills.map((skill) => (
+            <span
+              key={skill}
+              className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200"
+            >
+              ↑ {skill}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
       <a
         href={job.url}
         target="_blank"
