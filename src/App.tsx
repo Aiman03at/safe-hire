@@ -1,9 +1,8 @@
 import { useState } from "react";
-import ModeToggle from "./components/ModeToggle";
+import ModeToggle, { type Mode } from "./components/ModeToggle";
 import AnalyzerMode from "./components/AnalyzerMode";
 import AdvisorMode from "./components/AdvisorMode";
-
-type Mode = "analyzer" | "advisor";
+import AuditorMode from "./components/AuditorMode";
 
 export default function App() {
   const [mode, setMode] = useState<Mode>("analyzer");
@@ -18,7 +17,9 @@ export default function App() {
 
       <main className="flex-1 flex flex-col items-center px-4 py-12 gap-8">
         <ModeToggle mode={mode} onModeChange={setMode} />
-        {mode === "analyzer" ? <AnalyzerMode /> : <AdvisorMode />}
+        {mode === "analyzer" && <AnalyzerMode />}
+        {mode === "advisor" && <AdvisorMode />}
+        {mode === "auditor" && <AuditorMode />}
       </main>
     </div>
   );
