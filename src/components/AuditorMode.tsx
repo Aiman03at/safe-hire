@@ -1,161 +1,198 @@
 import { useState } from "react";
-import type { AuditResult } from "../types/index";
 import { auditPosting, rewritePosting } from "../lib/claude";
+import type { AuditResult } from "../types/index";
+import AuditCard from "./AuditCard";
+import RewritePanel from "./RewritePanel";
 
-function gradeColor(grade: string) {
-  if (grade === "A") return "text-green-600 bg-green-50 border-green-200";
-  if (grade === "B") return "text-teal-600 bg-teal-50 border-teal-200";
-  if (grade === "C") return "text-amber-500 bg-amber-50 border-amber-200";
-  return "text-red-500 bg-red-50 border-red-200";
-}
+const SAMPLE_POSTING = `Software Engineer - Full Stack
 
-function scoreBar(score: number) {
-  const pct = (score / 10) * 100;
-  const color =
-    score >= 7 ? "bg-green-500" : score >= 4 ? "bg-amber-400" : "bg-red-400";
-  return (
-    <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-      <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
-    </div>
-  );
-}
+We are looking for a rockstar ninja developer to join our fast-paced team.
+Must have 10+ years experience with React, Node.js, Python, AWS, Docker,
+Kubernetes, TypeScript, GraphQL, and PostgreSQL.
+
+Requirements:
+- 10+ years of experience (required)
+- Bachelor's degree in Computer Science (required)
+- Must be a culture fit
+- Experience with all modern frameworks
+- Ability to work in a fast-paced environment
+- Strong communication skills
+
+Responsibilities:
+- Build stuff
+- Fix bugs
+- Work with the team
+
+Apply by sending your resume to jobs@company.com.
+We will reach out if interested.`;
 
 export default function AuditorMode() {
-  const [jobText, setJobText] = useState("");
+  const [postingText, setPostingText] = useState("");
   const [result, setResult] = useState<AuditResult | null>(null);
-  const [rewrite, setRewrite] = useState<string | null>(null);
+  const [rewrittenText, setRewrittenText] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [rewriting, setRewriting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleAudit() {
+  const handleAudit = async () => {
+    if (!postingText.trim()) return;
     setLoading(true);
     setError(null);
     setResult(null);
-    setRewrite(null);
+    setRewrittenText(null);
     try {
-      setResult(await auditPosting(jobText));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      const data = await auditPosting(postingText);
+      setResult(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  async function handleRewrite() {
+  const handleRewrite = async () => {
     if (!result) return;
     setRewriting(true);
     setError(null);
     try {
-      setRewrite(await rewritePosting(jobText, result));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      const rewritten = await rewritePosting(postingText, result);
+      setRewrittenText(rewritten);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Rewrite failed.");
     } finally {
       setRewriting(false);
     }
-  }
+  };
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-2xl mx-auto">
-      <span className="text-xs text-gray-400">
-        Paste your job posting to get a recruiter-grade audit with actionable fixes.
-      </span>
+    <div className="space-y-5">
 
-      <textarea
-        className="w-full h-48 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 placeholder-gray-400 shadow-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-        placeholder="Paste your job posting here..."
-        value={jobText}
-        onChange={(e) => setJobText(e.target.value)}
-        disabled={loading}
-      />
+      {/* B2B badge */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs px-2 py-1 rounded-full bg-violet-950
+          text-violet-400 border border-violet-900 font-medium">
+          For Recruiters
+        </span>
+        <span className="text-xs text-slate-500">
+          Score your job posting before it goes live
+        </span>
+      </div>
 
-      <button
-        onClick={handleAudit}
-        disabled={loading || !jobText.trim()}
-        className="self-start rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-      >
-        Audit posting
-      </button>
+      {/* Input */}
+      <div>
+        <p className="text-xs text-slate-500 uppercase tracking-widest mb-2">
+          Your Job Posting
+        </p>
+        <textarea
+          value={postingText}
+          onChange={(e) => setPostingText(e.target.value)}
+          placeholder="Paste your job posting here before publishing..."
+          className="w-full h-40 resize-none text-sm p-4 rounded-lg
+            bg-slate-900 border border-slate-800 text-slate-200
+            placeholder-slate-600 focus:outline-none focus:border-slate-600
+            font-sans leading-relaxed"
+        />
+      </div>
 
-      {loading && <p className="text-sm text-gray-500 animate-pulse">Auditing...</p>}
-      {error && <p className="text-sm text-red-500">{error}</p>}
-
-      {result && (
-        <div className="flex flex-col gap-6 rounded-2xl border border-gray-200 bg-white shadow-sm p-8">
-          {/* Grade + headline */}
-          <div className="flex items-center gap-4">
-            <span
-              className={`text-4xl font-bold w-16 h-16 flex items-center justify-center rounded-xl border-2 ${gradeColor(result.grade)}`}
-            >
-              {result.grade}
-            </span>
-            <div>
-              <p className="text-base font-semibold text-gray-800">{result.headline}</p>
-              <p className="text-sm text-gray-400">Overall score: {result.overall_score}/100</p>
-            </div>
-          </div>
-
-          {/* Dimensions */}
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-              Dimensions
-            </h3>
-            <div className="flex flex-col gap-3">
-              {result.dimensions.map((d) => (
-                <div key={d.category} className="flex flex-col gap-1">
-                  <div className="flex items-center gap-3">
-                    <span className="w-36 text-xs font-medium text-gray-600 shrink-0">
-                      {d.category}
-                    </span>
-                    {scoreBar(d.score)}
-                    <span className="w-8 text-right text-xs font-bold text-gray-500">
-                      {d.score}/10
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500 pl-[9.5rem]">{d.suggestion}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Top 3 fixes */}
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-              Top fixes
-            </h3>
-            <ol className="flex flex-col gap-2">
-              {result.top_3_fixes.map((fix, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                  <span className="shrink-0 w-5 h-5 flex items-center justify-center rounded-full bg-green-100 text-green-700 text-xs font-bold">
-                    {i + 1}
-                  </span>
-                  {fix}
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          {/* Rewrite */}
-          <button
-            onClick={handleRewrite}
-            disabled={rewriting}
-            className="self-start rounded-lg border border-green-600 px-5 py-2.5 text-sm font-semibold text-green-600 hover:bg-green-600 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {rewriting ? "Rewriting..." : "Rewrite this posting"}
-          </button>
-
-          {rewrite && (
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-                Rewritten posting
-              </h3>
-              <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-sans bg-gray-50 rounded-xl border border-gray-200 p-4">
-                {rewrite}
-              </pre>
-            </div>
+      {/* Buttons */}
+      <div className="flex gap-3 items-center">
+        <button
+          onClick={handleAudit}
+          disabled={loading || !postingText.trim()}
+          className="px-5 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500
+            disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm
+            font-semibold transition-colors flex items-center gap-2"
+        >
+          {loading ? (
+            <>
+              <span className="w-3 h-3 border-2 border-white border-t-transparent
+                rounded-full animate-spin" />
+              Auditing...
+            </>
+          ) : (
+            "Audit posting"
           )}
+        </button>
+
+        <button
+          onClick={() => {
+            setPostingText(SAMPLE_POSTING);
+            setResult(null);
+            setRewrittenText(null);
+            setError(null);
+          }}
+          className="px-4 py-2.5 rounded-lg border border-slate-800
+            text-slate-400 hover:text-slate-300 text-sm transition-colors
+            flex items-center gap-2"
+        >
+          ⚡ Try a bad posting
+        </button>
+
+        {(postingText || result) && (
+          <button
+            onClick={() => {
+              setPostingText("");
+              setResult(null);
+              setRewrittenText(null);
+              setError(null);
+            }}
+            disabled={loading}
+            className="px-4 py-2.5 rounded-lg border border-slate-800
+              text-slate-500 hover:text-slate-400 text-sm transition-colors
+              disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="p-3 rounded-lg bg-red-950 border border-red-900">
+          <p className="text-red-400 text-sm">{error}</p>
         </div>
       )}
+
+      {/* Divider */}
+      {result && (
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-800" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="px-3 bg-slate-950 text-xs text-slate-600 uppercase tracking-widest">
+              Audit Result
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Audit result */}
+      {result && (
+        <AuditCard
+          result={result}
+          onRewrite={handleRewrite}
+          rewriting={rewriting}
+        />
+      )}
+
+      {/* Rewrite panel */}
+      {rewrittenText && (
+        <>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-800" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="px-3 bg-slate-950 text-xs text-slate-600 uppercase tracking-widest">
+                Rewritten Posting
+              </span>
+            </div>
+          </div>
+          <RewritePanel rewrittenText={rewrittenText} />
+        </>
+      )}
+
     </div>
   );
 }

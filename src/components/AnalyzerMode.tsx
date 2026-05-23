@@ -14,6 +14,12 @@ export default function AnalyzerMode() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  function handleClear() {
+    setJobText("");
+    setResult(null);
+    setError(null);
+  }
+
   async function handleAnalyze() {
     setLoading(true);
     setError(null);
@@ -48,13 +54,24 @@ export default function AnalyzerMode() {
         disabled={loading}
       />
 
-      <button
-        onClick={handleAnalyze}
-        disabled={loading || !jobText.trim()}
-        className="self-start rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-      >
-        Analyze posting
-      </button>
+      <div className="flex gap-3">
+        <button
+          onClick={handleAnalyze}
+          disabled={loading || !jobText.trim()}
+          className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          Analyze posting
+        </button>
+        {(jobText || result) && (
+          <button
+            onClick={handleClear}
+            disabled={loading}
+            className="rounded-lg border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Clear
+          </button>
+        )}
+      </div>
 
       {loading && (
         <p className="text-sm text-gray-500 animate-pulse">Analyzing...</p>
