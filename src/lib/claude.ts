@@ -30,7 +30,11 @@ export async function analyzePosting(text: string): Promise<AnalysisResult> {
   }
 
   const data = await response.json();
-  return JSON.parse(data.content[0].text) as AnalysisResult;
+  try {
+    return JSON.parse(data.content[0].text) as AnalysisResult;
+  } catch {
+    throw new Error("Could not parse analysis response. Please try again.");
+  }
 }
 
 export async function findJobs(skills: string): Promise<AdvisorResult> {
@@ -55,5 +59,10 @@ export async function findJobs(skills: string): Promise<AdvisorResult> {
 
   const data = await response.json();
   const textBlock = data.content.find((block: { type: string }) => block.type === "text");
-  return JSON.parse(textBlock.text) as AdvisorResult;
+  if (!textBlock) throw new Error("No text response returned. Please try again.");
+  try {
+    return JSON.parse(textBlock.text) as AdvisorResult;
+  } catch {
+    throw new Error("Could not parse job results. Please try again.");
+  }
 }
