@@ -26,3 +26,19 @@ export interface JobResult {
 export interface AdvisorResult {
   jobs: JobResult[];
 }
+
+export interface AuditDimension {
+  category: string;
+  score: number;
+  issue: string;
+  suggestion: string;
+}
+
+export interface AuditResult {
+  overall_score: number;
+  grade: string;
+  headline: string;
+  dimensions: AuditDimension[];
+  top_3_fixes: string[];
+  rewritten_posting?: string;
+}

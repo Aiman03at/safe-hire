@@ -1,4 +1,4 @@
-import type { AnalysisResult, AdvisorResult } from "../types/index";
+import type { AnalysisResult, AdvisorResult, AuditResult } from "../types/index";
 
 const API_URL = "/api/anthropic/v1/messages";
 
@@ -152,4 +152,93 @@ export async function findJobs(skills: string): Promise<AdvisorResult> {
 
   if (!parsed) throw new Error("No job results returned. Please try again.");
   return parsed;
+}
+
+export async function auditPosting(text: string): Promise<AuditResult> {
+  const response = await fetch(API_URL, {
+    method: "POST",
+    headers: HEADERS,
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 2000,
+      system:
+        "You are an expert recruiter and talent acquisition consultant. " +
+        "You audit job postings on behalf of companies to help them attract better candidates. " +
+        "Your tone is coaching and constructive — not critical. " +
+        "Analyze the posting across exactly 8 dimensions and return ONLY a raw JSON object, " +
+        "no markdown, no backticks, starting with { and ending with }. " +
+        "Use exactly this shape: " +
+        '{ ' +
+        '"overall_score": number (0-100), ' +
+        '"grade": "A" | "B" | "C" | "D" | "F", ' +
+        '"headline": "one sentence verdict", ' +
+        '"dimensions": [' +
+        '{ "category": "Clarity", "score": 0-10, "issue": "what is unclear", "suggestion": "specific fix" },' +
+        '{ "category": "Salary transparency", "score": 0-10, "issue": "...", "suggestion": "..." },' +
+        '{ "category": "DEI language", "score": 0-10, "issue": "...", "suggestion": "..." },' +
+        '{ "category": "Requirement bloat", "score": 0-10, "issue": "...", "suggestion": "..." },' +
+        '{ "category": "Company sell", "score": 0-10, "issue": "...", "suggestion": "..." },' +
+        '{ "category": "Role impact", "score": 0-10, "issue": "...", "suggestion": "..." },' +
+        '{ "category": "Application UX", "score": 0-10, "issue": "...", "suggestion": "..." },' +
+        '{ "category": "Keyword strength", "score": 0-10, "issue": "...", "suggestion": "..." }' +
+        '], ' +
+        '"top_3_fixes": ["most impactful fix", "second fix", "third fix"] ' +
+        '}',
+      messages: [{ role: "user", content: text }],
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`API error ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  const rawText = data?.content?.[0]?.text;
+  if (!rawText) throw new Error("No response received.");
+
+  try {
+    return JSON.parse(rawText) as AuditResult;
+  } catch {
+    const match = rawText.match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]) as AuditResult;
+    throw new Error("Could not parse audit response. Please try again.");
+  }
+}
+
+export async function rewritePosting(
+  originalText: string,
+  auditResult: AuditResult
+): Promise<string> {
+  const response = await fetch(API_URL, {
+    method: "POST",
+    headers: HEADERS,
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 2000,
+      system:
+        "You are an expert recruiter and copywriter. " +
+        "Rewrite job postings to be clearer, more inclusive, and more compelling to top candidates. " +
+        "Apply all the audit suggestions provided. Keep the same role and requirements but improve " +
+        "clarity, tone, structure, and candidate appeal. Return only the rewritten posting text — " +
+        "no explanation, no preamble, no markdown headers. Just the clean rewritten posting.",
+      messages: [
+        {
+          role: "user",
+          content:
+            `Original posting:\n\n${originalText}\n\n` +
+            `Audit findings to address:\n${auditResult.top_3_fixes.join("\n")}\n\n` +
+            `Dimension-specific suggestions:\n` +
+            auditResult.dimensions
+              .map((d) => `- ${d.category}: ${d.suggestion}`)
+              .join("\n") +
+            `\n\nPlease rewrite the posting incorporating all these improvements.`,
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) throw new Error(`API error: ${response.status}`);
+  const data = await response.json();
+  return data.content[0].text as string;
 }
