@@ -4,6 +4,7 @@ import type { AuditResult } from "../types/index";
 import AuditCard from "./AuditCard";
 import RewritePanel from "./RewritePanel";
 import { useLoadingMessage } from "../hooks/useLoadingMessage";
+import { validateInput } from "../lib/validate";
 
 const AUDIT_MESSAGES = [
   "Reading the posting…",
@@ -54,7 +55,8 @@ export default function AuditorMode() {
   const rewriteMessage = useLoadingMessage(REWRITE_MESSAGES, rewriting);
 
   const handleAudit = async () => {
-    if (!postingText.trim()) return;
+    const err = validateInput(postingText, 50);
+    if (err) { setError(err); return; }
     setLoading(true); setError(null); setResult(null); setRewrittenText(null);
     try {
       setResult(await auditPosting(postingText));
@@ -102,10 +104,15 @@ export default function AuditorMode() {
         </div>
         <textarea
           value={postingText}
-          onChange={(e) => setPostingText(e.target.value)}
+          onChange={(e) => { setPostingText(e.target.value); setError(null); }}
           placeholder="Paste your job posting before publishing…"
-          className="w-full h-44 sm:h-52 px-4 py-3 text-sm text-stone-800 placeholder-stone-300 bg-white resize-none focus:outline-none leading-relaxed"
+          className={`w-full h-44 sm:h-52 px-4 py-3 text-sm text-stone-800 placeholder-stone-300 bg-white resize-none focus:outline-none leading-relaxed ${error ? "border-t border-red-300" : ""}`}
         />
+        {error && (
+          <p className="text-red-500 text-xs px-4 pb-3 flex items-center gap-1">
+            <span>⚠</span> {error}
+          </p>
+        )}
       </div>
 
       {/* Actions */}
@@ -153,13 +160,6 @@ export default function AuditorMode() {
         </div>
       )}
 
-      {/* Error */}
-      {error && (
-        <div className="flex items-start gap-2.5 p-3.5 rounded-xl border border-red-200 bg-red-50 anim-fade-in">
-          <i className="ti ti-alert-circle text-red-500 text-base mt-0.5 shrink-0" />
-          <p className="text-sm text-red-700">{error}</p>
-        </div>
-      )}
 
       {/* Audit result */}
       {result && (
