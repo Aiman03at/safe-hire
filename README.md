@@ -12,6 +12,10 @@ SafeHire is a three-mode AI job tool built on the Claude API. It started as a ha
 
 ---
 
+## Demo
+
+🎥 [Watch demo video](https://youtu.be/X2KJUP5-Ccg)
+
 ## Screenshots
 
 ![Analyze mode](public/screenshots/Screenshot%201.png)
