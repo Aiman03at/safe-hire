@@ -3,6 +3,7 @@ import type { AnalysisResult } from "../types/index";
 import { analyzePosting } from "../lib/claude";
 import ScoreCard from "./ScoreCard";
 import { useLoadingMessage } from "../hooks/useLoadingMessage";
+import { validateInput } from "../lib/validate";
 
 const ANALYZER_MESSAGES = [
   "Reading the posting…",
@@ -30,6 +31,8 @@ export default function AnalyzerMode() {
   }
 
   async function handleAnalyze() {
+    const err = validateInput(jobText, 100);
+    if (err) { setError(err); return; }
     setLoading(true); setError(null); setResult(null);
     try {
       setResult(await analyzePosting(jobText));
@@ -55,12 +58,17 @@ export default function AnalyzerMode() {
           </button>
         </div>
         <textarea
-          className="w-full h-44 sm:h-52 px-4 py-3 text-sm text-stone-800 placeholder-stone-300 bg-white resize-none focus:outline-none leading-relaxed"
+          className={`w-full h-44 sm:h-52 px-4 py-3 text-sm text-stone-800 placeholder-stone-300 bg-white resize-none focus:outline-none leading-relaxed ${error ? "border-t border-red-300" : ""}`}
           placeholder="Paste job posting here…"
           value={jobText}
-          onChange={(e) => setJobText(e.target.value)}
+          onChange={(e) => { setJobText(e.target.value); setError(null); }}
           disabled={loading}
         />
+        {error && (
+          <p className="text-red-500 text-xs px-4 pb-3 flex items-center gap-1">
+            <span>⚠</span> {error}
+          </p>
+        )}
       </div>
 
       {/* Actions */}
@@ -99,14 +107,6 @@ export default function AnalyzerMode() {
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-100 anim-fade-in">
           <span className="w-3.5 h-3.5 border-2 border-amber-300 border-t-amber-700 rounded-full animate-spin shrink-0" />
           <span className="text-sm font-medium text-amber-800">{loadingMessage}</span>
-        </div>
-      )}
-
-      {/* Error */}
-      {error && (
-        <div className="flex items-start gap-2.5 p-3.5 rounded-xl border border-red-200 bg-red-50 anim-fade-in">
-          <i className="ti ti-alert-circle text-red-500 text-base mt-0.5 shrink-0" />
-          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
