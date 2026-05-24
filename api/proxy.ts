@@ -1,12 +1,13 @@
-export const config = { runtime: "edge" };
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-export default async function handler(req: Request): Promise<Response> {
+export const maxDuration = 60;
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 });
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const body = await req.text();
-  const betaHeader = req.headers.get("anthropic-beta");
+  const betaHeader = req.headers["anthropic-beta"] as string | undefined;
 
   const headers: Record<string, string> = {
     "content-type": "application/json",
@@ -18,12 +19,9 @@ export default async function handler(req: Request): Promise<Response> {
   const upstream = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers,
-    body,
+    body: JSON.stringify(req.body),
   });
 
-  const text = await upstream.text();
-  return new Response(text, {
-    status: upstream.status,
-    headers: { "content-type": "application/json" },
-  });
+  const data = await upstream.json();
+  res.status(upstream.status).json(data);
 }
