@@ -2,12 +2,25 @@ import { useState } from "react";
 import type { AdvisorResult } from "../types/index";
 import { findJobs } from "../lib/claude";
 import JobCard from "./JobCard";
+import { useLoadingMessage } from "../hooks/useLoadingMessage";
+
+const ADVISOR_MESSAGES = [
+  "Searching job boards…",
+  "Scanning Greenhouse & Lever…",
+  "Checking LinkedIn jobs…",
+  "Matching your skills…",
+  "Filtering low-quality listings…",
+  "Ranking best matches…",
+  "Verifying apply links…",
+  "Almost there…",
+];
 
 export default function AdvisorMode() {
   const [skills, setSkills]   = useState("");
   const [result, setResult]   = useState<AdvisorResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState<string | null>(null);
+  const loadingMessage = useLoadingMessage(ADVISOR_MESSAGES, loading, 3500);
 
   async function handleFind() {
     setLoading(true); setError(null); setResult(null);
@@ -52,6 +65,14 @@ export default function AdvisorMode() {
           Searches live remote job boards — results include real apply links.
         </p>
       </div>
+
+      {/* Loading state */}
+      {loading && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-100 anim-fade-in">
+          <span className="w-3.5 h-3.5 border-2 border-amber-300 border-t-amber-700 rounded-full animate-spin shrink-0" />
+          <span className="text-sm font-medium text-amber-800">{loadingMessage}</span>
+        </div>
+      )}
 
       {/* Error */}
       {error && (

@@ -2,6 +2,16 @@ import { useState } from "react";
 import type { AnalysisResult } from "../types/index";
 import { analyzePosting } from "../lib/claude";
 import ScoreCard from "./ScoreCard";
+import { useLoadingMessage } from "../hooks/useLoadingMessage";
+
+const ANALYZER_MESSAGES = [
+  "Reading the posting…",
+  "Checking salary signals…",
+  "Scanning contact methods…",
+  "Verifying company identity…",
+  "Looking for red flags…",
+  "Calculating risk score…",
+];
 
 const DEMO_TEXT =
   "We are hiring for a Remote Data Entry position. Earn $5,000/week from home. " +
@@ -13,6 +23,7 @@ export default function AnalyzerMode() {
   const [result, setResult]   = useState<AnalysisResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState<string | null>(null);
+  const loadingMessage = useLoadingMessage(ANALYZER_MESSAGES, loading);
 
   function handleClear() {
     setJobText(""); setResult(null); setError(null);
@@ -82,6 +93,14 @@ export default function AnalyzerMode() {
           </button>
         )}
       </div>
+
+      {/* Loading state */}
+      {loading && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-100 anim-fade-in">
+          <span className="w-3.5 h-3.5 border-2 border-amber-300 border-t-amber-700 rounded-full animate-spin shrink-0" />
+          <span className="text-sm font-medium text-amber-800">{loadingMessage}</span>
+        </div>
+      )}
 
       {/* Error */}
       {error && (

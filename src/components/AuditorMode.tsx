@@ -3,6 +3,24 @@ import { auditPosting, rewritePosting } from "../lib/claude";
 import type { AuditResult } from "../types/index";
 import AuditCard from "./AuditCard";
 import RewritePanel from "./RewritePanel";
+import { useLoadingMessage } from "../hooks/useLoadingMessage";
+
+const AUDIT_MESSAGES = [
+  "Reading the posting…",
+  "Checking clarity & structure…",
+  "Scanning for DEI language…",
+  "Checking requirement bloat…",
+  "Evaluating candidate appeal…",
+  "Scoring all 8 dimensions…",
+];
+
+const REWRITE_MESSAGES = [
+  "Applying your audit fixes…",
+  "Improving clarity & tone…",
+  "Removing biased language…",
+  "Strengthening the sell…",
+  "Polishing the final draft…",
+];
 
 const SAMPLE_POSTING = `Software Engineer - Full Stack
 
@@ -32,6 +50,8 @@ export default function AuditorMode() {
   const [loading, setLoading]             = useState(false);
   const [rewriting, setRewriting]         = useState(false);
   const [error, setError]                 = useState<string | null>(null);
+  const auditMessage   = useLoadingMessage(AUDIT_MESSAGES, loading);
+  const rewriteMessage = useLoadingMessage(REWRITE_MESSAGES, rewriting);
 
   const handleAudit = async () => {
     if (!postingText.trim()) return;
@@ -118,6 +138,20 @@ export default function AuditorMode() {
           </button>
         )}
       </div>
+
+      {/* Loading states */}
+      {loading && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-100 anim-fade-in">
+          <span className="w-3.5 h-3.5 border-2 border-amber-300 border-t-amber-700 rounded-full animate-spin shrink-0" />
+          <span className="text-sm font-medium text-amber-800">{auditMessage}</span>
+        </div>
+      )}
+      {rewriting && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-violet-50 border border-violet-100 anim-fade-in">
+          <span className="w-3.5 h-3.5 border-2 border-violet-300 border-t-violet-700 rounded-full animate-spin shrink-0" />
+          <span className="text-sm font-medium text-violet-800">{rewriteMessage}</span>
+        </div>
+      )}
 
       {/* Error */}
       {error && (
