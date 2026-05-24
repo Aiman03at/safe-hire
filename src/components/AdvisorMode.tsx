@@ -3,6 +3,7 @@ import type { AdvisorResult } from "../types/index";
 import { findJobs } from "../lib/claude";
 import JobCard from "./JobCard";
 import { useLoadingMessage } from "../hooks/useLoadingMessage";
+import { validateInput } from "../lib/validate";
 
 const ADVISOR_MESSAGES = [
   "Searching job boards…",
@@ -23,6 +24,8 @@ export default function AdvisorMode() {
   const loadingMessage = useLoadingMessage(ADVISOR_MESSAGES, loading, 3500);
 
   async function handleFind() {
+    const err = validateInput(skills);
+    if (err) { setError("Please enter at least one skill to search."); return; }
     setLoading(true); setError(null); setResult(null);
     try {
       setResult(await findJobs(skills));
@@ -41,10 +44,10 @@ export default function AdvisorMode() {
         <div className="flex gap-2.5">
           <input
             type="text"
-            className="flex-1 rounded-xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-amber-300 focus:ring-2 focus:ring-amber-100 focus:bg-white transition-all"
+            className={`flex-1 rounded-xl border bg-stone-50 px-4 py-2.5 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:ring-2 focus:bg-white transition-all ${error ? "border-red-300 focus:border-red-400 focus:ring-red-100" : "border-stone-200 focus:border-amber-300 focus:ring-amber-100"}`}
             placeholder="e.g. React, TypeScript, Node.js"
             value={skills}
-            onChange={(e) => setSkills(e.target.value)}
+            onChange={(e) => { setSkills(e.target.value); setError(null); }}
             onKeyDown={(e) => e.key === "Enter" && !loading && skills.trim() && handleFind()}
             disabled={loading}
           />
@@ -61,9 +64,13 @@ export default function AdvisorMode() {
             <span className="hidden sm:inline">{loading ? "Searching…" : "Find jobs"}</span>
           </button>
         </div>
-        <p className="text-[11px] text-stone-400 mt-2.5">
-          Searches live remote job boards — results include real apply links.
-        </p>
+        {error ? (
+          <p className="text-red-500 text-xs mt-2 flex items-center gap-1"><span>⚠</span> {error}</p>
+        ) : (
+          <p className="text-[11px] text-stone-400 mt-2.5">
+            Searches live remote job boards — results include real apply links.
+          </p>
+        )}
       </div>
 
       {/* Loading state */}
