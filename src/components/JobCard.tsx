@@ -47,16 +47,21 @@ export default function JobCard({ job }: Props) {
         </div>
       ) : null}
 
-      {/* Apply link */}
-      <a
-        href={job.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="self-start inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 hover:text-amber-800 transition-colors group/link"
-      >
-        Apply now
-        <i className="ti ti-arrow-up-right text-sm group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
-      </a>
+      {/* Footer row */}
+      <div className="flex items-center justify-between gap-3">
+        <a
+          href={job.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 hover:text-amber-800 transition-colors group/link"
+        >
+          Apply now
+          <i className="ti ti-arrow-up-right text-sm group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
+        </a>
+        <span className="text-xs text-emerald-600 flex items-center gap-1">
+          ✓ Fraud-screened by SafeHire
+        </span>
+      </div>
     </div>
   );
 }

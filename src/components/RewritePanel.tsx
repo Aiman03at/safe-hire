@@ -13,8 +13,23 @@ const QUALITY_TAGS = [
 export default function RewritePanel({ rewrittenText }: Props) {
   const [copied, setCopied] = useState(false);
 
+  const cleanText = rewrittenText
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/#{1,6}\s/g, "")
+    .trim();
+
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(rewrittenText);
+    try {
+      await navigator.clipboard.writeText(cleanText);
+    } catch {
+      const el = document.createElement("textarea");
+      el.value = cleanText;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -46,7 +61,7 @@ export default function RewritePanel({ rewrittenText }: Props) {
       {/* Body */}
       <div className="px-5 sm:px-6 py-5">
         <pre className="text-sm text-stone-700 leading-relaxed whitespace-pre-wrap font-sans">
-          {rewrittenText}
+          {cleanText}
         </pre>
       </div>
 
