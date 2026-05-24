@@ -110,7 +110,10 @@ export async function findJobs(skills: string): Promise<AdvisorResult> {
         "The 'why' field must be 1-2 sentences explaining specifically why this role matches THESE skills. " +
         "The 'match_skills' field lists which of the user's skills this role uses. " +
         "The 'gap_skills' field lists any required skills the user may be missing. " +
-        "Maximum 5 results. If fewer than 3 strong matches exist, return only the strong ones.",
+        "Maximum 5 results. If fewer than 3 strong matches exist, return only the strong ones. " +
+        "Before including any job, mentally check it against common fraud signals. " +
+        "Never return a job that has: no real company name, WhatsApp-only contact, upfront payment requirements, " +
+        "or implausibly high salary for low-skill work. If a result fails these checks, exclude it silently.",
       messages: [
         {
           role: "user",
@@ -218,10 +221,12 @@ export async function rewritePosting(
       max_tokens: 2000,
       system:
         "You are an expert recruiter and copywriter. " +
-        "Rewrite job postings to be clearer, more inclusive, and more compelling to top candidates. " +
+        "Rewrite job postings to be clearer, more inclusive, and more compelling. " +
         "Apply all the audit suggestions provided. Keep the same role and requirements but improve " +
-        "clarity, tone, structure, and candidate appeal. Return only the rewritten posting text — " +
-        "no explanation, no preamble, no markdown headers. Just the clean rewritten posting.",
+        "clarity, tone, structure, and candidate appeal. " +
+        "CRITICAL: Output plain text ONLY. No markdown, no asterisks, no bold syntax, " +
+        "no ## headers, no bullet dashes. Use ALL CAPS for section headers (e.g. ABOUT US, THE ROLE). " +
+        "The output must be ready to paste directly into LinkedIn or any job board with zero formatting cleanup.",
       messages: [
         {
           role: "user",
