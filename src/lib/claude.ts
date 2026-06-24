@@ -16,7 +16,7 @@ export async function analyzePosting(text: string): Promise<AnalysisResult> {
     method: "POST",
     headers: HEADERS,
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-opus-4-7",
       max_tokens: 1000,
       system:
         "You are a job posting fraud analyst. You must respond with ONLY a raw JSON object. " +
